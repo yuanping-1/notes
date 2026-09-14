@@ -28,16 +28,16 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: 构建站点
         run: node src/build.js
 
       - name: 配置 Pages
         uses: actions/configure-pages@v5
-        with:
-          # 首次运行时若仓库还没开启 Pages，尝试自动开启，省掉手动进设置页
-          enablement: true
+        # 不开 enablement：创建 Pages 站点需要仓库 admin 权限，而 GITHUB_TOKEN 只有
+        # 集成身份（Resource not accessible by integration），必然失败。Pages 由仓库设置或
+        # 一次性 API 调用开启，这里只读配置即可。
 
       - uses: actions/upload-pages-artifact@v3
         with:
