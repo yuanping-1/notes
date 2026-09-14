@@ -127,6 +127,29 @@ function parseFilename(file) {
 }
 
 /**
+ * 404 页的链接前缀。
+ *
+ * 其他页面都是「相对自己所在目录」，但 404 页不行：GitHub Pages 对任意不存在的路径
+ * 都返回 404.html，浏览器会把它的基准 URL 当成那个错误路径，所以 /notes/posts/typo
+ * 下的相对链接会被解析到 /notes/posts/assets/... 去。
+ *
+ * 于是 404 只能用绝对路径。而绝对路径必须带上子路径前缀，否则样式会指向
+ * 域根下的 /assets/ 而不是 /notes/assets/。前缀从 site.url 推导。
+ * url 没配时退回 '/'，此时根域部署与 file:// 直开仍正常，只有「子路径 + 404」这一种
+ * 组合会掉样式——这是能接受的降级，不配 url 的人本来也不在子路径下发。
+ */
+function notFoundRoot(site) {
+  if (!site.url) return '/';
+  try {
+    const p = new URL(site.url).pathname;
+    return p.endsWith('/') ? p : `${p}/`;
+  } catch {
+    warnings.push(`site.config.js 的 url 不是合法地址，404 页退回根路径：${site.url}`);
+    return '/';
+  }
+}
+
+/**
  * 分类解析：先按 slug 匹配，再按中文 label 匹配。
  * 两种写法都接受是有意的——写 frontmatter 时人更容易直接写「科研」而不是 research，
  * 静默失配会让文章掉出所有分类页，属于难发现的问题。
@@ -345,7 +368,7 @@ function generate() {
   else warnings.push('content/pages/about.md 不存在，未生成关于页');
 
   /* 404 与 RSS */
-  written.push(writeFile('404.html', T.render404(site, '/')));
+  written.push(writeFile('404.html', T.render404(site, notFoundRoot(site))));
   written.push(writeFile('feed.xml', buildFeed(posts)));
 
   /* 静态资源 */

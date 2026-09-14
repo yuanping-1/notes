@@ -15,8 +15,9 @@ module.exports = {
     affiliation: '北京科技大学',
     email: 'hello@example.com',
   },
-  // 站点部署地址，用于生成 RSS 绝对链接。留空则 RSS 中退化为相对路径
-  url: '',
+  // 站点部署地址，用于生成 RSS 绝对链接。必须以 / 结尾。
+  // 留空的话 RSS 里会退化成相对路径，多数阅读器解析不了。
+  url: 'https://yuanping-1.github.io/notes/',
   nav: [
     { label: '文章', href: 'index.html' },
     { label: '分类', href: 'categories/index.html' },

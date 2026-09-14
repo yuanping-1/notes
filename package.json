@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node src/build.js",
     "build:drafts": "node src/build.js --drafts",
+    "check": "node tools/validate.js",
     "preview": "node src/serve.js"
   },
   "engines": {

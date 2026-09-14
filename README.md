@@ -36,6 +36,33 @@ blog/
 
 `dist/` 是纯静态产物，直接丢到任何静态托管即可。它可随时删除，重新构建会完整重建。
 
+## 构建与校验
+
+```bash
+node src/build.js     # 构建（等同 npm run build）
+node tools/validate.js   # 校验产物（等同 npm run check）
+```
+
+**改完东西两个都跑**。校验脚本检查五类问题：
+
+| 检查项 | 说明 |
+| --- | --- |
+| 断链 | 每个 `href` / `src` 指向的文件在 `dist/` 里真实存在 |
+| 缺失锚点 | `page.html#section` 的目标页里确实有那个 `id` |
+| 重复 id | 同一页面内 `id` 不得重复（否则锚点行为未定义） |
+| 标签配平 | 结构性标签开闭数量一致，注释里的标签不计数 |
+| 部署路径 | 只有 `404.html` 允许用绝对路径且前缀须等于 `site.config.js` 的 `url` 子路径；其他页面出现 `/` 开头引用即报错 |
+
+另外会检查 `feed.xml` 里是否全是绝对链接（相对链接阅读器解析不了）、`<html lang>`、`<title>`、`DOCTYPE`。
+
+退出码 0 表示全过，1 表示有错误。有错误时**不要提交**。
+
+### 两个容易踩的路径陷阱
+
+1. **站内链接必须相对**。除了 `404.html`，所有页面都用相对于自身目录的路径，这样根域部署、子路径部署、`file://` 直开都能用。写 markdown 时不要用 `/feed.xml` 这种根绝对路径。
+
+2. **`404.html` 反过来必须绝对，且要带子路径前缀**。GitHub Pages 对任意不存在的路径都返回 `404.html`，浏览器会把基准 URL 当成那个错误路径——`/notes/posts/typo` 下的相对链接会被解析到 `/notes/posts/assets/...`。前缀由构建脚本从 `site.config.js` 的 `url` 推导（`build.js` 的 `notFoundRoot`）。所以**改部署地址时务必同步改 `url`**，否则 404 页会掉样式。
+
 ## 写一篇文章
 
 在 `content/posts/` 下新建 `YYYY-MM-DD-英文短名.md`。文件名里的日期会作为 `date` 的兜底，slug 从文件名解析。
@@ -115,10 +142,41 @@ $$
 
 ## 部署
 
-产物是纯静态文件，任选一种：
+**当前线上地址：<https://yuanping-1.github.io/notes/>**，仓库 <https://github.com/yuanping-1/notes>。
 
-- **GitHub Pages** — 把 `dist/` 内容推到 `gh-pages` 分支（已生成 `.nojekyll`，避免下划线文件被忽略）
-- **任意静态托管** — 腾讯云 COS / 阿里云 OSS / Vercel / Netlify / Cloudflare Pages，上传 `dist/` 即可
+### 日常发布
+
+写完文章放进 `content/posts/`，然后：
+
+```bash
+git add -A
+git commit -m "新文章：<标题>"
+git push
+```
+
+GitHub Actions（`.github/workflows/pages.yml`）会自动跑 `node src/build.js` 并部署，约 30 秒后可访问。构建在 ubuntu-latest 上执行，因站点零依赖所以不需要 `npm install`。
+
+**不要提交 `dist/`** —— 它由 CI 生成。本地 `dist/` 只在预览时有意义。
+
+### 首次配置 Pages 时的一个坑
+
+`actions/configure-pages@v5` **不要**开 `enablement: true`。创建 Pages *站点* 需要仓库 admin 权限，而 workflow 里的 `GITHUB_TOKEN` 是集成身份，必然报：
+
+```
+Create Pages site failed. Error: Resource not accessible by integration
+```
+
+`permissions:` 里写 `pages: write` 也救不了——那是*部署*权限，不是*建站*权限。建站这一步要用有 `repo` 权限的用户 token 单独做一次：
+
+```bash
+gh api -X POST /repos/yuanping-1/notes/pages -f build_type=workflow
+```
+
+（本站已开过，正常发布不需要再执行。）
+
+### 换其他托管
+
+产物是纯静态文件，也可以直接上传 `dist/` 到腾讯云 COS / 阿里云 OSS / Vercel / Netlify / Cloudflare Pages。
 
 站内链接全部是相对路径，所以根域部署、子路径部署、`file://` 直接打开三种情况都能用，不需要改配置或加 `<base>`。
 
