@@ -1,0 +1,14 @@
+{
+  "name": "captain-notes-blog",
+  "version": "1.0.0",
+  "private": true,
+  "description": "静态博客：Markdown 源文件 + 零依赖构建脚本",
+  "scripts": {
+    "build": "node src/build.js",
+    "build:drafts": "node src/build.js --drafts",
+    "preview": "node src/serve.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

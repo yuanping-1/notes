@@ -1,0 +1,25 @@
+# 构建产物，可随时重建
+dist/
+
+# 构建中途的临时目录（构建成功后会被改名为 dist），以及被替换下来的旧产物
+.dist-build*/
+.dist-old*/
+
+# 开发期截图与临时预览副本
+.shots/
+dist/__probe_*.html
+dist/__dark_*.html
+
+# 依赖（本项目零依赖，留作防止误装）
+node_modules/
+
+# 草稿目录：仓库是公开的，草稿留本地，不要提交
+# （content/posts/ 里的 draft: true 只能挡住构建产物，挡不住别人看仓库）
+content/drafts/
+
+# 编辑器与系统
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log

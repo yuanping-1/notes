@@ -1,0 +1,15 @@
+# 仓库内一律存 LF。
+# 构建跑在 Linux 的 GitHub Actions 上，而编辑在 Windows 上做；
+# 不锁定行尾的话，同一份文件在两台机器间来回 checkout 会产生整文件 diff，
+# 也会让 Actions 里读到的内容与本地不一致。
+* text=auto eol=lf
+
+# 二进制文件不做行尾转换，否则会损坏
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.avif binary
+*.woff2 binary
+*.pdf binary
